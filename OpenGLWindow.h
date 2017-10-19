@@ -12,6 +12,8 @@
 #include <GL/gl.h>
 #include <GL/glu.h>
 
+#include <cstring>
+
 #include "ErrorLogs.h"
 
 #include "Util.h"
@@ -51,8 +53,10 @@ public:
 
 	bool cursorHidden = false;
 
-	OpenGLWindow (bool windowVisible, int width = 600, int height = 600, std::string name = "123") 
-			: window(window), height(height), name(name) 
+	int MSAA;
+
+	OpenGLWindow (bool windowVisible, int width = 600, int height = 600, std::string name = "123", int MSAA = 8) 
+			: window(window), height(height), name(name), MSAA(MSAA)
 	{
 		init(windowVisible);
 	}
@@ -89,7 +93,45 @@ public:
 	bool setWindowSettings() {
 		GLint atributes[] = { GLX_RGBA, GLX_DEPTH_SIZE, 24, GLX_DOUBLEBUFFER, None }; // make more generic
 
-		visualInfo = glXChooseVisual(display, 0/* screen */, atributes);
+		static const int Visual_attribs[] =
+		{
+			GLX_X_RENDERABLE    , True,
+			GLX_DRAWABLE_TYPE   , GLX_WINDOW_BIT,
+			GLX_RENDER_TYPE     , GLX_RGBA_BIT,
+			GLX_X_VISUAL_TYPE   , GLX_TRUE_COLOR,
+			GLX_RED_SIZE        , 8,
+			GLX_GREEN_SIZE      , 8,
+			GLX_BLUE_SIZE       , 8,
+			GLX_ALPHA_SIZE      , 8,
+			GLX_DEPTH_SIZE      , 24,
+			GLX_STENCIL_SIZE    , 8,
+			GLX_DOUBLEBUFFER    , True,
+			GLX_SAMPLE_BUFFERS  , MSAA > 0,            // <-- MSAA
+			GLX_SAMPLES         , MSAA,            // <-- MSAA 
+			None					
+		};
+
+		int attribs [ 100 ] ;
+		memcpy( attribs, Visual_attribs, sizeof( Visual_attribs ) );
+
+		GLXFBConfig fbconfig = 0;
+		int         fbcount;
+
+		GLXFBConfig *fbc = glXChooseFBConfig( display, 0/*screen */, attribs, &fbcount );
+		if ( fbc )
+		{
+			if ( fbcount >= 1 )
+				fbconfig = fbc[0];
+			XFree( fbc );
+		}
+
+		if ( !fbconfig ) {
+			ERROR_PRINT("Failed to get MSAA GLXFBConfig", 0, 0); 
+			return false; 
+		}
+
+		// --- Get its VisualInfo ---
+		visualInfo = glXGetVisualFromFBConfig( display, fbconfig );
 
 		if (visualInfo == NULL) {
 			ERROR_PRINT("no visual chosen", 0, 0); 
