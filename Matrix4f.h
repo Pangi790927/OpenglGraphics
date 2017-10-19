@@ -39,6 +39,8 @@ public:
     Matrix4f operator + ( Matrix4f mat );         // not ready
     Point3f operator * ( Point3f point );   // not ready
 
+    Point3f mult(Point3f point);    
+
     friend Matrix4f operator * ( float a , Matrix4f mat );                                        // not ready
     friend std::istream& operator >> ( std::istream& stream , std::string inputStream );    // not ready
     friend std::ostream& operator << ( std::ostream& stream , const Matrix4f &mat );           // not ready
@@ -203,6 +205,16 @@ Point3f Matrix4f::operator*( Point3f point ){
     aux.z = mat[2][0] * point.x + mat[2][1] * point.y + mat[2][2] * point.z + mat[2][3] * 1 ;
 
     return aux;
+}
+
+Point3f Matrix4f::mult(Point3f point) {
+    Point3f aux;
+
+    aux.x = mat[0][0] * point.x + mat[0][1] * point.y + mat[0][2] * point.z;
+    aux.y = mat[1][0] * point.x + mat[1][1] * point.y + mat[1][2] * point.z;
+    aux.z = mat[2][0] * point.x + mat[2][1] * point.y + mat[2][2] * point.z;
+
+    return aux;   
 }
 
 Matrix4f operator*( float a , Matrix4f mat ){

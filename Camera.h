@@ -11,7 +11,7 @@ public:
 
 	float speed = 0.1;
 	float rotationSpeed = 0.3;
-	float mouseMoveTreshold = 0.01;
+	float mouseMoveTreshold = 0.001;
 
 	Matrix4f initialTransformation = Matrix4f::returnIdentityMatrix() ;
 	Matrix4f transformMatrix = Matrix4f::returnIdentityMatrix(); 
@@ -36,27 +36,27 @@ public:
 
 		static Point3f cameraPos;
 
-		if (keyboard.isPresed('w')) {
+		if (keyboard.isPressed('w') || keyboard.isPressed('W')) {
 			cameraPos = cameraPos - inverseRotationY * Point3f(0, 0, speed);
 		}
 
-		if (keyboard.isPresed('s')) {
+		if (keyboard.isPressed('s') || keyboard.isPressed('S')) {
 			cameraPos = cameraPos + inverseRotationY * Point3f(0, 0, speed);
 		}
 
-		if (keyboard.isPresed('d')) {
+		if (keyboard.isPressed('d') || keyboard.isPressed('D')) {
 			cameraPos = cameraPos + inverseRotationY * Point3f(speed, 0, 0);
 		}
 
-		if (keyboard.isPresed('a')) {
+		if (keyboard.isPressed('a') || keyboard.isPressed('A')) {
 			cameraPos = cameraPos - inverseRotationY * Point3f(speed, 0, 0);
 		}
 
-		if (keyboard.isPresed('q')) {
+		if (keyboard.isPressed('q') || keyboard.isPressed('Q')) {
 			cameraPos = cameraPos + Point3f(0, speed, 0);
 		}
 
-		if (keyboard.isPresed('e')) {
+		if (keyboard.isPressed('e') || keyboard.isPressed('E')) {
 			cameraPos = cameraPos - Point3f(0, speed, 0);
 		}
 

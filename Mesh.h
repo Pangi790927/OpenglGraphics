@@ -376,6 +376,8 @@ VertexTypeDef1;
 template <typename VertexType>
 class Mesh {
 public:
+	using VertType = VertexType;
+
 	std::vector <VertexType> vertexList; 
 	std::vector <Material> materials;
 	std::vector <int> materialIndex;

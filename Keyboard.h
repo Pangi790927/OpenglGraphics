@@ -1,7 +1,7 @@
 #ifndef KEYBOARD_H_INCLUDED
 #define KEYBOARD_H_INCLUDED
 
-// #include <keysym.h>
+#include <X11/keysymdef.h>
 
 class Keyboard {
 public:
@@ -26,11 +26,23 @@ public:
 
 	void handleEvent (XEvent &event) {
 		if (event.type == KeyPress) {
-			keys[getKeyFromEvent(event)] = true; 
+			int key = getKeyFromEvent(event);
+
+			keys[tolower(key)] = true;
+			keys[toupper(key)] = true;
+
+			keys[key] = true; 
 		}
 		else if (event.type == KeyRelease) {
-			keys[getKeyFromEvent(event)] = false;
+			int key = getKeyFromEvent(event);
+
+			keys[tolower(key)] = false;
+			keys[toupper(key)] = false;
 		}
+	}
+
+	void setKey (int key, bool set) {
+		keys[key] = set;
 	}
 
 	bool wasPressedOnce(int key) {
@@ -44,11 +56,12 @@ public:
 		return false; 
 	}
 
-	bool isPresed(int key) {
+	bool isPressed(int key) {
 		return keys[key] == true; 
 	}
 
-	const static int ESC = 27; 
+	const static int ESC = XK_Escape & 0xff; 
+	const static int L_SHIFT = XK_Shift_L & 0xff; 
 };
 
 #endif
