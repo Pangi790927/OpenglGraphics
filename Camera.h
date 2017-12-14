@@ -13,6 +13,8 @@ public:
 	float rotationSpeed = 0.3;
 	float mouseMoveTreshold = 0.001;
 
+	Point3f pos;
+
 	Matrix4f initialTransformation = Matrix4f::returnIdentityMatrix() ;
 	Matrix4f transformMatrix = Matrix4f::returnIdentityMatrix(); 
 	
@@ -59,6 +61,8 @@ public:
 		if (keyboard.isPressed('e') || keyboard.isPressed('E')) {
 			cameraPos = cameraPos - Point3f(0, speed, 0);
 		}
+
+		pos = cameraPos;
 
 		Matrix4f translation = Matrix4f::returnTranslationMatrix(cameraPos * -1);
 

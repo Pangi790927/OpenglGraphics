@@ -78,8 +78,9 @@ public:
 			else if (face.size() == 4) {
 				// draw a point
 				glBegin(GL_QUADS); 
-					for (auto&& index : face) 
+					for (auto&& index : face) {
 						drawVertex(mesh.vertexList[index]);
+					}
 				glEnd(); 
 			}
 			else {

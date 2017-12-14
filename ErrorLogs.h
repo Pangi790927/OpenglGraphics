@@ -23,7 +23,6 @@
         std::cout << " !!! ERROR: " << toPrint << " " << errorCode << " " << severity << std::endl;
     }
 
-    #define DEBUG(toPrint) debugPrintFunc(std::string(__FUNCTION__) + " :: " + std::string(toPrint));
     #define ERROR_PRINT(toPrint, errorCode, severity) errorPrintFunc(toPrint, errorCode, severity);
     #define debugPrint std::cout
 #else
@@ -35,8 +34,7 @@
     }null_buffer;
 
     ostream null_stream(&null_buffer);
-
-    #define DEBUG(toPrint);
+    
     #define ERROR_PRINT(toPrint, errorCode, severity) ;
     #define debugPrint null_stream
 #endif // DEBUG_PRINT

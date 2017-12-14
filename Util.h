@@ -10,6 +10,15 @@
 #include <GL/gl.h>
 #include <GL/glu.h>
 
+#ifndef DEBUG
+    #ifdef DEBUG_PRINT
+        #include <iostream>
+        #define DEBUG(x) std::cout << __FUNCTION__ << ": " << x << std::endl;
+    #else
+        #define DEBUG(x) ;
+    #endif
+#endif
+
 namespace Util {
     //Text not by const reference
     //so that the function can be used with a character array as argument
