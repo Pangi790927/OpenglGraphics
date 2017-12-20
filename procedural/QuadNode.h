@@ -177,6 +177,102 @@ public:
 		return Point2f(start.x, start.y) + Point2f(sideLength / 2.0, sideLength / 2.0);
 	}
 
+
+	//		tl	tr
+	//	tl	tl	tr	tr
+	//	bl	bl	br	br
+	//		bl	br
+
+	void fixNormal (int index) {
+		Point3f normalResult = Point3f(0);
+
+		bool count[4] = {
+			(bool)top + (bool)left + (top && left) + 1,			// tl
+			(bool)top + (bool)right + (top && right) + 1,			// tr
+			(bool)bottom + (bool)left + (bottom && left) + 1,		// bl
+			(bool)bottom + (bool)right + (bottom && right) + 1	// br
+		};
+
+		auto tl_point3f = allocator.get().getVert(level, vertexes[tl]).get<VertexPosition>();
+		auto tr_point3f = allocator.get().getVert(level, vertexes[tr]).get<VertexPosition>();
+		auto bl_point3f = allocator.get().getVert(level, vertexes[bl]).get<VertexPosition>();
+		auto br_point3f = allocator.get().getVert(level, vertexes[br]).get<VertexPosition>();
+
+		auto t_tl_point3f = Point3f(0);
+		auto t_tr_point3f = Point3f(0);
+
+		auto r_tr_point3f = Point3f(0);
+		auto r_br_point3f = Point3f(0);
+		
+		auto l_tl_point3f = Point3f(0);
+		auto l_bl_point3f = Point3f(0);
+		
+		auto b_bl_point3f = Point3f(0);
+		auto b_br_point3f = Point3f(0);
+
+		if (top) {				
+			t_tl_point3f = allocator.get().getVert(level, top->vertexes[tl]).template get<VertexPosition>();
+			t_tr_point3f = allocator.get().getVert(level, top->vertexes[tr]).template get<VertexPosition>();
+		}
+
+		if (right) {
+			r_tr_point3f = allocator.get().getVert(level, right->vertexes[tr]).template get<VertexPosition>();
+			r_br_point3f = allocator.get().getVert(level, right->vertexes[br]).template get<VertexPosition>();
+		}
+
+		if (left) {
+			l_tl_point3f = allocator.get().getVert(level, left->vertexes[tl]).template get<VertexPosition>();
+			l_bl_point3f = allocator.get().getVert(level, left->vertexes[bl]).template get<VertexPosition>();
+		}
+
+		if (bottom) {
+			b_bl_point3f = allocator.get().getVert(level, bottom->vertexes[bl]).template get<VertexPosition>();
+			b_br_point3f = allocator.get().getVert(level, bottom->vertexes[br]).template get<VertexPosition>();
+		}
+
+		Point3f verts[4][4] = {
+			{Point3f(0),	t_tl_point3f,	t_tr_point3f,	Point3f(0)},
+			{l_tl_point3f,	tl_point3f,		tr_point3f,		r_tr_point3f},
+			{l_bl_point3f,	bl_point3f,		br_point3f,		r_br_point3f},
+			{Point3f(0),	b_bl_point3f,	b_br_point3f,	Point3f(0)}
+		};
+
+		bool vert_is[4][4] = {
+			{false,			(bool)top,		(bool)top,		false},
+			{(bool)left,	true,			true,			(bool)right},
+			{(bool)left,	true,			true,			(bool)right},
+			{false,			(bool)bottom,	(bool)bottom,	false}
+		};		
+
+		//					tl,	tr,	bl,	br
+		int index_r[] = {	1,	1,	2,	2};
+		int index_c[] = {	1,	2,	1,	2};
+
+		auto center = verts[index_r[index]][index_c[index]];
+
+		auto crossCoord = [&](int x1, int y1, int x2, int y2) {
+			return (Point3f(verts[index_r[index] + x1][index_c[index] + y1] - center)).cross(
+					Point3f(verts[index_r[index] + x2][index_c[index] + y2] - center)) * 
+							(vert_is[index_r[index] + x1][index_c[index] + y1] && 
+							vert_is[index_r[index] + x2][index_c[index] + y2]);
+		}; 
+
+
+		Point3f norm1 = crossCoord(-1,	0,	0,	-1	);	// (top with left) 
+		Point3f norm2 = crossCoord(0,	-1,	1,	0	);	// (left with bottom) 
+		Point3f norm3 = crossCoord(1,	0,	0,	1	);	// (bottom with right) 
+		Point3f norm4 = crossCoord(0,	1,	-1,	0	);	// (right with top) 
+
+		allocator.get().getVert(level, vertexes[index]).get<VertexNormal>() =
+				-1 * ((norm1 + norm2 + norm3 + norm4) / float(count[index])).normalize();
+	}
+
+	void fixNormals (std::initializer_list<int> index_list) {
+		for (auto&& index : index_list) {
+			fixNormal (index);
+		}
+	}
+
 	/// Choses attrib for vertexes, those vertexes ARE on the edge of the level
 	void fixVertsAvrg() {
 		auto fixer = [this](int level, int child, int firstParent, int secondParent) {
@@ -184,9 +280,9 @@ public:
 			allocator.get().getVert(level + 1, firstParent).get<VertexPosition>().y * 0.666666 +
 			allocator.get().getVert(level + 1, secondParent).get<VertexPosition>().y * 0.333334;
 
-			allocator.get().getVert(level, child).get<VertexNormal>() =
-			allocator.get().getVert(level + 1, firstParent).get<VertexNormal>() * 0.666666 +
-			allocator.get().getVert(level + 1, secondParent).get<VertexNormal>() * 0.333334;
+			// allocator.get().getVert(level, child).get<VertexNormal>() =
+			// allocator.get().getVert(level + 1, firstParent).get<VertexNormal>() * 0.666666 +
+			// allocator.get().getVert(level + 1, secondParent).get<VertexNormal>() * 0.333334;
 
 			allocator.get().getVert(level, child).get<VertexColor>() =
 			allocator.get().getVert(level + 1, firstParent).get<VertexColor>() * 0.666666 +
@@ -200,6 +296,8 @@ public:
 			if (!top) {
 				fixer(level, parent->childs[1]->vertexes[tl], parent->vertexes[tl], parent->vertexes[tr]);
 				fixer(level, parent->childs[1]->vertexes[tr], parent->vertexes[tr], parent->vertexes[tl]);
+				parent->childs[1]->fixNormal(tl);
+				parent->childs[1]->fixNormal(tr);
 				parent->childs[0]->isComplete = false;
 				parent->childs[1]->isComplete = false;
 				parent->childs[2]->isComplete = false;
@@ -207,6 +305,8 @@ public:
 			if (!left) {
 				fixer(level, parent->childs[3]->vertexes[tl], parent->vertexes[tl], parent->vertexes[bl]);
 				fixer(level, parent->childs[3]->vertexes[bl], parent->vertexes[bl], parent->vertexes[tl]);
+				parent->childs[3]->fixNormal(tl);
+				parent->childs[3]->fixNormal(bl);
 				parent->childs[0]->isComplete = false;
 				parent->childs[3]->isComplete = false;
 				parent->childs[6]->isComplete = false;
@@ -214,6 +314,8 @@ public:
 			if (!bottom) {
 				fixer(level, parent->childs[7]->vertexes[br], parent->vertexes[br], parent->vertexes[bl]);
 				fixer(level, parent->childs[7]->vertexes[bl], parent->vertexes[bl], parent->vertexes[br]);
+				parent->childs[7]->fixNormal(br);
+				parent->childs[7]->fixNormal(bl);
 				parent->childs[6]->isComplete = false;
 				parent->childs[7]->isComplete = false;
 				parent->childs[8]->isComplete = false;
@@ -221,6 +323,8 @@ public:
 			if (!right) {
 				fixer(level, parent->childs[5]->vertexes[tr], parent->vertexes[tr], parent->vertexes[br]);
 				fixer(level, parent->childs[5]->vertexes[br], parent->vertexes[br], parent->vertexes[tr]);
+				parent->childs[5]->fixNormal(tr);
+				parent->childs[5]->fixNormal(br);
 				parent->childs[2]->isComplete = false;
 				parent->childs[5]->isComplete = false;
 				parent->childs[8]->isComplete = false;
@@ -298,16 +402,16 @@ public:
 						allocator.get().getVert(level + 1, pBL).get<VertexPosition>().y * contrib[bl][i][j] +
 						allocator.get().getVert(level + 1, pBR).get<VertexPosition>().y * contrib[br][i][j];
 						
-						/// normals
-						allocator.get().getVert(level, newVerts[i][j]).get<VertexNormal>() =
-						(allocator.get().getVert(level, newVerts[i][j]).get<VertexNormal>() + 
-						allocator.get().getVert(level + 1, pTL).get<VertexNormal>() * contrib[tl][i][j] +
-						allocator.get().getVert(level + 1, pTR).get<VertexNormal>() * contrib[tr][i][j] +
-						allocator.get().getVert(level + 1, pBL).get<VertexNormal>() * contrib[bl][i][j] +
-						allocator.get().getVert(level + 1, pBR).get<VertexNormal>() * contrib[br][i][j]) / 2.0f;
+						// /// normals
+						// allocator.get().getVert(level, newVerts[i][j]).get<VertexNormal>() =
+						// (allocator.get().getVert(level, newVerts[i][j]).get<VertexNormal>() + 
+						// allocator.get().getVert(level + 1, pTL).get<VertexNormal>() * contrib[tl][i][j] +
+						// allocator.get().getVert(level + 1, pTR).get<VertexNormal>() * contrib[tr][i][j] +
+						// allocator.get().getVert(level + 1, pBL).get<VertexNormal>() * contrib[bl][i][j] +
+						// allocator.get().getVert(level + 1, pBR).get<VertexNormal>() * contrib[br][i][j]) / 2.0f;
 
-						allocator.get().getVert(level, newVerts[i][j]).get<VertexNormal>() =
-						allocator.get().getVert(level, newVerts[i][j]).get<VertexNormal>().normalize();
+						// allocator.get().getVert(level, newVerts[i][j]).get<VertexNormal>() =
+						// allocator.get().getVert(level, newVerts[i][j]).get<VertexNormal>().normalize();
 
 						/// colors
 						allocator.get().getVert(level, newVerts[i][j]).get<VertexColor>() =
@@ -315,8 +419,17 @@ public:
 					}
 				}
 			}
-			for (auto&& child : parent->childs)
+			for (auto&& child : parent->childs) {
 				child->isComplete = true;
+			}
+
+			/// 0 1 2
+			/// 3 4 5
+			/// 6 7 8
+			parent->childs[0]->fixNormals({tl, tr, bl, br});
+			parent->childs[2]->fixNormals({tl, tr, bl, br});
+			parent->childs[6]->fixNormals({tl, tr, bl, br});
+			parent->childs[8]->fixNormals({tl, tr, bl, br});
 		}
 	}
 
@@ -488,6 +601,13 @@ public:
 
 		/// actually chose vertex, colors, normals, texcoords, etc...
 		childs[4]->fixVertsRand();
+		for (int i = 0; i < 9; i++) {
+			childs[i]->fixNormal(tl);
+		}
+		childs[0]->fixNormals({tl, tr, bl, br});
+		childs[2]->fixNormals({tl, tr, bl, br});
+		childs[6]->fixNormals({tl, tr, bl, br});
+		childs[8]->fixNormals({tl, tr, bl, br});
 
 		/// deleting old face
 		if (element != INVALID_ID) {
