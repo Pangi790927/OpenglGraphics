@@ -1,10 +1,10 @@
 #version 130
- 
+
 uniform mat4 worldMatrix, viewMatrix, projectionMatrix;
- 
-varying vec4 color;
-varying vec2 fragTexCoord;
-varying vec4 position;
+
+out vec4 color;
+out vec2 fragTexCoord;
+out vec4 position;
 
 // in vec4 position;
 // in vec3 color;
@@ -15,9 +15,9 @@ void main()
 {
     // Color = color;
     color = gl_Color;
-    gl_TexCoord[0] = gl_MultiTexCoord0;// / 2.0f + vec4(0.5, 0.05, 0.05, 0.05); 
+    fragTexCoord = gl_MultiTexCoord0;// / 2.0f + vec4(0.5, 0.05, 0.05, 0.05); 
 
-    position = gl_Vertex;
+    // position = gl_Vertex;
 
-    gl_Position = projectionMatrix * viewMatrix * worldMatrix * gl_Vertex;
+    position = projectionMatrix * viewMatrix * worldMatrix * gl_Vertex;
 }

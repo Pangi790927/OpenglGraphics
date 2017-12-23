@@ -40,6 +40,10 @@ public:
 		glUseProgram(program);
 	}
 
+	void disableProgram() {
+		glUseProgram(0);
+	}
+
 	void createProgram() {
 		program = glCreateProgram();
 		isProgramValid = true; 

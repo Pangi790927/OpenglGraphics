@@ -9,7 +9,7 @@ public:
 		srand(a);
 		int res1 = rand();
 
-		srand(b * res1);
+		srand(b + res1);
 		int res2 = rand();
 		
 		srand(res1 * res2);
@@ -54,23 +54,23 @@ public:
 			vert.get<VertexColor>() = Point3f(r, g, b);
 		}
 		if (level <= 2) {
-			vert.get<VertexPosition>() = Point3f(pos.x, height * pow(3, level) * 0.01, pos.y);
+			vert.get<VertexPosition>() = Point3f(pos.x, height * pow(3, level) * 1, pos.y);
 			vert.get<VertexColor>() = Point3f(r, g, b);
 		}
 		else if (level <= 3) {
-			vert.get<VertexPosition>() = Point3f(pos.x, height * pow(3, level) * 0.3, pos.y);
+			vert.get<VertexPosition>() = Point3f(pos.x, height * pow(3, level) * 2, pos.y);
 			vert.get<VertexColor>() = Point3f(r, g, b);
 		}
 		else if (level <= 4) {
-			vert.get<VertexPosition>() = Point3f(pos.x, height * pow(3, level) * 0.2 , pos.y);
+			vert.get<VertexPosition>() = Point3f(pos.x, height * pow(3, level) * 1 , pos.y);
 			vert.get<VertexColor>() = Point3f(r, g, b);
 		}
 		else if (level <= 5) {
-			vert.get<VertexPosition>() = Point3f(pos.x, height * pow(3, level) * 0.1 , pos.y);
+			vert.get<VertexPosition>() = Point3f(pos.x, height * pow(3, level) * 1 , pos.y);
 			vert.get<VertexColor>() = Point3f(r, g, b);
 		}
 		else if (level <= 6) {
-			vert.get<VertexPosition>() = Point3f(pos.x, height * pow(3, level) * 0.02 , pos.y);
+			vert.get<VertexPosition>() = Point3f(pos.x, height * pow(3, level) * 1 , pos.y);
 			vert.get<VertexColor>() = Point3f(r, g, b);
 		}
 		else if (level <= 7) {
