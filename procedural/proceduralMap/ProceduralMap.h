@@ -195,7 +195,6 @@ public:
 
 			root = newRoot;
 		}
-		
 		root->update(size, pos);
 		applyToNeighs(root, [&, this](std::shared_ptr<MapQuadNode> node){
 			node->update(size, pos);

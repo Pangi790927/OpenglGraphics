@@ -6,10 +6,9 @@
 
 #include "Util.h"
 
-/// fix normals 
-/// solve texturing
+/// solve texturing bug (main quads must be reversed versions of eachother)
 /// Optimization minLevel ...
-/// Optimize QuadAllocator drawing
+/// Optimize QuadAllocator drawing (even more if possible)
 
 class QuadID {
 public:
@@ -49,12 +48,12 @@ public:
 	/// vertexes of the node
 	// 0 1
 	// 2 3
-	std::vector <int> vertexes; /// needs pointers to vertexes	   
+	std::vector <int> vertexes; /// needs pointers to vertexes
 	int element;
 
 	std::shared_ptr <QuadNode> parent;
 	std::shared_ptr <QuadNode> thisNode;
-	std::shared_ptr <QuadNode> left, right, top, bottom; 
+	std::shared_ptr <QuadNode> left, right, top, bottom;
 
 	/// the 9 childs of the node
 	std::vector <std::shared_ptr <QuadNode>> childs;
@@ -64,7 +63,7 @@ public:
 	bool isSplit = false;
 	bool isComplete = false;
 
-	static const int tl = 0;	// top left 
+	static const int tl = 0;	// top left
 	static const int tr = 1;	// top right
 	static const int bl = 2;	// bottom left
 	static const int br = 3;	// bottom right
@@ -72,7 +71,7 @@ public:
 	static const int INVALID_ID = -1;
 	static int quadCount;
 
-	QuadNode (int level, QuadAllocator &allocator, Point2i start) 
+	QuadNode (int level, QuadAllocator &allocator, Point2i start)
 				: vertexes(4), childs(9), allocator(allocator), start(start), level(level)
 	{
 		vertexes[tl] = INVALID_ID;
@@ -108,10 +107,10 @@ public:
 			}
 		}
 	}
-	/// at node level n we want to know if there is a level k such that k < n and 
+	/// at node level n we want to know if there is a level k such that k < n and
 	/// there is at least a node at level k that needs merging or at least a node that
 	/// needs spliting
-	/// merges ocour if testQuad(const size, const pos, quad start) is true, so quad is 
+	/// merges ocour if testQuad(const size, const pos, quad start) is true, so quad is
 	/// outside the square at that level or else a split ocurs
 
 	/// really needs optimizing...
@@ -126,7 +125,7 @@ public:
 				fixVertsRand();
 			}
 		}
-		
+
 		for (auto&& child : childs)
 			if (child)
 				child->fix();
@@ -147,8 +146,8 @@ public:
 		auto center = getCenterPos(start);
 		auto vec1 = Point2i((int)pos.x, (int)pos.y);
 		auto vec2 = Point2i((int)center.x, (int)center.y);
-		
-		return std::abs(vec1.x - vec2.x) / 2 > squareDist * side 
+
+		return std::abs(vec1.x - vec2.x) / 2 > squareDist * side
 				|| std::abs(vec1.y - vec2.y) / 2 > squareDist * side;
 	}
 
@@ -203,14 +202,14 @@ public:
 
 		auto r_tr_point3f = Point3f(0);
 		auto r_br_point3f = Point3f(0);
-		
+
 		auto l_tl_point3f = Point3f(0);
 		auto l_bl_point3f = Point3f(0);
-		
+
 		auto b_bl_point3f = Point3f(0);
 		auto b_br_point3f = Point3f(0);
 
-		if (top) {				
+		if (top) {
 			t_tl_point3f = allocator.get().getVert(level, top->vertexes[tl]).template get<VertexPosition>();
 			t_tr_point3f = allocator.get().getVert(level, top->vertexes[tr]).template get<VertexPosition>();
 		}
@@ -242,7 +241,7 @@ public:
 			{(bool)left,	true,			true,			(bool)right},
 			{(bool)left,	true,			true,			(bool)right},
 			{false,			(bool)bottom,	(bool)bottom,	false}
-		};		
+		};
 
 		//					tl,	tr,	bl,	br
 		int index_r[] = {	1,	1,	2,	2};
@@ -252,16 +251,16 @@ public:
 
 		auto crossCoord = [&](int x1, int y1, int x2, int y2) {
 			return (Point3f(verts[index_r[index] + x1][index_c[index] + y1] - center)).cross(
-					Point3f(verts[index_r[index] + x2][index_c[index] + y2] - center)) * 
-							(vert_is[index_r[index] + x1][index_c[index] + y1] && 
+					Point3f(verts[index_r[index] + x2][index_c[index] + y2] - center)) *
+							(vert_is[index_r[index] + x1][index_c[index] + y1] &&
 							vert_is[index_r[index] + x2][index_c[index] + y2]);
-		}; 
+		};
 
 
-		Point3f norm1 = crossCoord(-1,	0,	0,	-1	);	// (top with left) 
-		Point3f norm2 = crossCoord(0,	-1,	1,	0	);	// (left with bottom) 
-		Point3f norm3 = crossCoord(1,	0,	0,	1	);	// (bottom with right) 
-		Point3f norm4 = crossCoord(0,	1,	-1,	0	);	// (right with top) 
+		Point3f norm1 = crossCoord(-1,	0,	0,	-1	);	// (top with left)
+		Point3f norm2 = crossCoord(0,	-1,	1,	0	);	// (left with bottom)
+		Point3f norm3 = crossCoord(1,	0,	0,	1	);	// (bottom with right)
+		Point3f norm4 = crossCoord(0,	1,	-1,	0	);	// (right with top)
 
 		allocator.get().getVert(level, vertexes[index]).get<VertexNormal>() =
 				-1 * ((norm1 + norm2 + norm3 + norm4) / float(count[index])).normalize();
@@ -371,7 +370,7 @@ public:
 					{0.00, var2, var1, 1.00}
 				},
 			};
-			auto& pCh = parent->childs; 
+			auto& pCh = parent->childs;
 			int pTL = parent->vertexes[tl];
 			int pTR = parent->vertexes[tr];
 			int pBL = parent->vertexes[bl];
@@ -385,26 +384,48 @@ public:
 				{pCh[3]->vertexes[bl], pCh[4]->vertexes[bl], pCh[4]->vertexes[br], pCh[5]->vertexes[br]},
 				{-1					 , pCh[7]->vertexes[bl], pCh[7]->vertexes[br], -1				   }
 			};
+
+			/// p0 p1  p1 p0  p0 p1
+			/// p2 p3  p3 p2  p2 p3
+
+			/// p2 p3  p3 p2  p2 p3
+			/// p0 p1  p1 p0  p0 p1
+
+			/// p0 p1  p1 p0  p0 p1
+			/// p2 p3  p3 p2  p2 p3
+
+			auto tex_p0 = allocator.get().getVert(level + 1, pTL).get<VertexTexCoord>();
+			auto tex_p1 = allocator.get().getVert(level + 1, pTR).get<VertexTexCoord>();
+			auto tex_p2 = allocator.get().getVert(level + 1, pBL).get<VertexTexCoord>();
+			auto tex_p3 = allocator.get().getVert(level + 1, pBR).get<VertexTexCoord>();
+
+			Point2f texCoord[4][4] = {
+				{tex_p0, tex_p1, tex_p0, tex_p1},
+				{tex_p2, tex_p3, tex_p2, tex_p3},
+				{tex_p0, tex_p1, tex_p0, tex_p1},
+				{tex_p2, tex_p3, tex_p2, tex_p3}
+			};
+
 			int childSide = pow(3, level);
 			for (int i = 0; i < 4; i++) {
 				for (int j = 0; j < 4; j++) {
 					if (newVerts[i][j] != -1) {
 						allocator.get().getVert(level, newVerts[i][j]) = ProcChoser::getVertParent(
-							parent->start + Point2i(j, i) * childSide, 
+							parent->start + Point2i(j, i) * childSide,
 							level
 						);
 
 						/// positions
 						allocator.get().getVert(level, newVerts[i][j]).get<VertexPosition>().y =
-						allocator.get().getVert(level, newVerts[i][j]).get<VertexPosition>().y + 
+						allocator.get().getVert(level, newVerts[i][j]).get<VertexPosition>().y +
 						allocator.get().getVert(level + 1, pTL).get<VertexPosition>().y * contrib[tl][i][j] +
 						allocator.get().getVert(level + 1, pTR).get<VertexPosition>().y * contrib[tr][i][j] +
 						allocator.get().getVert(level + 1, pBL).get<VertexPosition>().y * contrib[bl][i][j] +
 						allocator.get().getVert(level + 1, pBR).get<VertexPosition>().y * contrib[br][i][j];
-						
+
 						// /// normals
 						// allocator.get().getVert(level, newVerts[i][j]).get<VertexNormal>() =
-						// (allocator.get().getVert(level, newVerts[i][j]).get<VertexNormal>() + 
+						// (allocator.get().getVert(level, newVerts[i][j]).get<VertexNormal>() +
 						// allocator.get().getVert(level + 1, pTL).get<VertexNormal>() * contrib[tl][i][j] +
 						// allocator.get().getVert(level + 1, pTR).get<VertexNormal>() * contrib[tr][i][j] +
 						// allocator.get().getVert(level + 1, pBL).get<VertexNormal>() * contrib[bl][i][j] +
@@ -414,8 +435,11 @@ public:
 						// allocator.get().getVert(level, newVerts[i][j]).get<VertexNormal>().normalize();
 
 						/// colors
-						allocator.get().getVert(level, newVerts[i][j]).get<VertexColor>() =
-						allocator.get().getVert(level, newVerts[i][j]).get<VertexColor>();
+						// allocator.get().getVert(level, newVerts[i][j]).get<VertexColor>() =
+						// allocator.get().getVert(level, newVerts[i][j]).get<VertexColor>();
+
+						allocator.get().getVert(level, newVerts[i][j]).get<VertexTexCoord>() =
+								texCoord[i][j];
 					}
 				}
 			}
@@ -443,7 +467,7 @@ public:
 		// if (parent)
 		// 	parent->recalcMinSplit();
 
-		/// first create childs and after that link them 		
+		/// first create childs and after that link them
 		int childSide = pow(3, level - 1);
 
 		for (int i = 0; i < 9; i++) {
@@ -455,7 +479,7 @@ public:
 		const static int first = 0, second = 1;
 
 		/// childs:
-		///    _6_7_8_	
+		///    _6_7_8_
 		///
 		/// _2  0 1 2  0_
 		/// _5  3 4 5  3_
@@ -471,7 +495,7 @@ public:
 
 			for (auto&& pair : pairs) {
 				childs[pair[first]]->top = top->childs[pair[second]];
-				top->childs[pair[second]]->bottom = childs[pair[first]];	
+				top->childs[pair[second]]->bottom = childs[pair[first]];
 			}
 		}
 
@@ -480,7 +504,7 @@ public:
 
 			for (auto&& pair : pairs) {
 				childs[pair[first]]->left = left->childs[pair[second]];
-				left->childs[pair[second]]->right = childs[pair[first]];	
+				left->childs[pair[second]]->right = childs[pair[first]];
 			}
 		}
 
@@ -506,9 +530,9 @@ public:
 
 		/// childs:
 		///
-		///	 0 1 2 
-		///  3 4 5 
-		///  6 7 8 
+		///	 0 1 2
+		///  3 4 5
+		///  6 7 8
 
 		/// of the form "first has second in right"
 		static int rights[][2] = {
@@ -596,7 +620,7 @@ public:
 			childs[i]->vertexes[tr] = newVerts[i / 3 + 0][i % 3 + 1];
 			childs[i]->vertexes[bl] = newVerts[i / 3 + 1][i % 3 + 0];
 			childs[i]->vertexes[br] = newVerts[i / 3 + 1][i % 3 + 1];
-			childs[i]->isComplete = true; 
+			childs[i]->isComplete = true;
 		}
 
 		/// actually chose vertex, colors, normals, texcoords, etc...
@@ -641,7 +665,7 @@ public:
 
 		isSplit = false;
 
-		/// this recalc might need some optimiztions 
+		/// this recalc might need some optimiztions
 		// if (parent)
 		// 	parent->recalcMinSplit();
 
@@ -656,7 +680,7 @@ public:
 			if (child) {
 				/// free tl
 				if ((child->top && child->top->vertexes[bl] != INVALID_ID) ||
-						(child->left && child->left->vertexes[tr] != INVALID_ID)) 
+						(child->left && child->left->vertexes[tr] != INVALID_ID))
 				{
 					if (child != childs[0])
 						child->vertexes[tl] = INVALID_ID;
@@ -664,13 +688,13 @@ public:
 				else {
 					if (child != childs[0] && child->vertexes[tl] != INVALID_ID) {
 						allocator.get().freeVert(level - 1, child->vertexes[tl]);
-						child->vertexes[tl] = INVALID_ID;		
+						child->vertexes[tl] = INVALID_ID;
 					}
 				}
 
 				/// free tr
 				if ((child->top && child->top->vertexes[br] != INVALID_ID) ||
-						(child->right && child->right->vertexes[tl] != INVALID_ID)) 
+						(child->right && child->right->vertexes[tl] != INVALID_ID))
 				{
 					if (child != childs[2])
 						child->vertexes[tr] = INVALID_ID;
@@ -678,13 +702,13 @@ public:
 				else {
 					if (child != childs[2] && child->vertexes[tr] != INVALID_ID) {
 						allocator.get().freeVert(level - 1, child->vertexes[tr]);
-						child->vertexes[tr] = INVALID_ID;		
+						child->vertexes[tr] = INVALID_ID;
 					}
 				}
 
 				/// free bl
 				if ((child->bottom && child->bottom->vertexes[tl] != INVALID_ID) ||
-						(child->left && child->left->vertexes[br] != INVALID_ID)) 
+						(child->left && child->left->vertexes[br] != INVALID_ID))
 				{
 					if (child != childs[6])
 						child->vertexes[bl] = INVALID_ID;
@@ -692,13 +716,13 @@ public:
 				else {
 					if (child != childs[6] && child->vertexes[bl] != INVALID_ID) {
 						allocator.get().freeVert(level - 1, child->vertexes[bl]);
-						child->vertexes[bl] = INVALID_ID;		
+						child->vertexes[bl] = INVALID_ID;
 					}
 				}
 
 				/// free br
 				if ((child->bottom && child->bottom->vertexes[tr] != INVALID_ID) ||
-						(child->right && child->right->vertexes[bl] != INVALID_ID)) 
+						(child->right && child->right->vertexes[bl] != INVALID_ID))
 				{
 					if (child != childs[8])
 						child->vertexes[br] = INVALID_ID;
@@ -706,7 +730,7 @@ public:
 				else {
 					if (child != childs[8] && child->vertexes[br] != INVALID_ID) {
 						allocator.get().freeVert(level - 1, child->vertexes[br]);
-						child->vertexes[br] = INVALID_ID;		
+						child->vertexes[br] = INVALID_ID;
 					}
 				}
 			}
@@ -734,7 +758,7 @@ public:
 			};
 		}
 
-		/// free all the links of childs 
+		/// free all the links of childs
 		for (auto&& child : childs) {
 			if (child) {
 				if (child->top) {
@@ -759,7 +783,7 @@ public:
 			}
 		}
 
-		/// free all the links 
+		/// free all the links
 		for (auto&& child : childs) {
 			if (child) {
 				child->parent = nullptr;
@@ -775,6 +799,63 @@ public:
 	//   lbr bl  br  rbl
 	//       btl btr
 	//
+	void setNoParentTexture (bool revVert, bool revHoriz) {
+		/// 10 11  11 10
+		/// 00 01  01 00
+
+		/// 00 01  01 00
+		/// 10 11  11 10
+
+		if (!revVert && !revHoriz) {
+			/// 10 11
+			/// 00 01
+			allocator.get().getVert(level, vertexes[tl]).get<VertexTexCoord>()
+					= Point2f(1, 0);
+			allocator.get().getVert(level, vertexes[tr]).get<VertexTexCoord>()
+					= Point2f(1, 1);
+			allocator.get().getVert(level, vertexes[bl]).get<VertexTexCoord>()
+					= Point2f(0, 0);
+			allocator.get().getVert(level, vertexes[br]).get<VertexTexCoord>()
+					= Point2f(0, 1);
+		}
+		else if (revVert && !revHoriz) {
+			/// 00 01
+			/// 10 11
+			allocator.get().getVert(level, vertexes[tl]).get<VertexTexCoord>()
+					= Point2f(0, 0);
+			allocator.get().getVert(level, vertexes[tr]).get<VertexTexCoord>()
+					= Point2f(0, 1);
+			allocator.get().getVert(level, vertexes[bl]).get<VertexTexCoord>()
+					= Point2f(1, 0);
+			allocator.get().getVert(level, vertexes[br]).get<VertexTexCoord>()
+					= Point2f(1, 1);
+		}
+		else if (!revVert && revHoriz) {
+			/// 11 10
+			/// 01 00
+			allocator.get().getVert(level, vertexes[tl]).get<VertexTexCoord>()
+					= Point2f(1, 1);
+			allocator.get().getVert(level, vertexes[tr]).get<VertexTexCoord>()
+					= Point2f(1, 0);
+			allocator.get().getVert(level, vertexes[bl]).get<VertexTexCoord>()
+					= Point2f(0, 1);
+			allocator.get().getVert(level, vertexes[br]).get<VertexTexCoord>()
+					= Point2f(0, 0);
+		}
+		else {
+			/// 01 00
+			/// 11 10
+			allocator.get().getVert(level, vertexes[tl]).get<VertexTexCoord>()
+					= Point2f(0, 1);
+			allocator.get().getVert(level, vertexes[tr]).get<VertexTexCoord>()
+					= Point2f(0, 0);
+			allocator.get().getVert(level, vertexes[bl]).get<VertexTexCoord>()
+					= Point2f(1, 1);
+			allocator.get().getVert(level, vertexes[br]).get<VertexTexCoord>()
+					= Point2f(1, 0);
+		}
+	}
+
 	void initNoParent() {
 		std::vector<int*> groupTL;
 		std::vector<int*> groupTR;
@@ -811,7 +892,7 @@ public:
 			for (auto&& elem : vec) {
 				if (chosenID != INVALID_ID && *elem != -1 && *elem != chosenID)
 					std::cout << "ERROR CHOSING MAP ID" << std::endl;
-				
+
 				if (*elem != -1 && chosenID == INVALID_ID)
 					chosenID = *elem;
 			}
@@ -825,9 +906,11 @@ public:
 				allocator.get().getVert(level, chosenID)
 						= ProcChoser::getVertParent(start + corner, level);
 				for (auto&& elem : vec)
-					*elem = chosenID;	
+					*elem = chosenID;
 			}
 		};
+
+		setNoParentTexture(false, false);
 
 		int sideLen = pow(3, level);
 		choseID(groupTL, Point2i(0, 0));
@@ -864,7 +947,7 @@ public:
 			element = INVALID_ID;
 		}
 
-		if ((top && top->vertexes[bl] != INVALID_ID) || 
+		if ((top && top->vertexes[bl] != INVALID_ID) ||
 				(left && left->vertexes[tr] != INVALID_ID))
 		{
 			vertexes[tl] = INVALID_ID;
@@ -875,7 +958,7 @@ public:
 			vertexes[tl] = INVALID_ID;
 		}
 
-		if ((top && top->vertexes[br] != INVALID_ID) || 
+		if ((top && top->vertexes[br] != INVALID_ID) ||
 				(right && right->vertexes[tl] != INVALID_ID))
 		{
 			vertexes[tr] = INVALID_ID;
@@ -886,7 +969,7 @@ public:
 			vertexes[tr] = INVALID_ID;
 		}
 
-		if ((bottom && bottom->vertexes[tl] != INVALID_ID) || 
+		if ((bottom && bottom->vertexes[tl] != INVALID_ID) ||
 				(left && left->vertexes[br] != INVALID_ID))
 		{
 			vertexes[bl] = INVALID_ID;
@@ -897,7 +980,7 @@ public:
 			vertexes[bl] = INVALID_ID;
 		}
 
-		if ((bottom && bottom->vertexes[tr] != INVALID_ID) || 
+		if ((bottom && bottom->vertexes[tr] != INVALID_ID) ||
 				(right && right->vertexes[bl] != INVALID_ID))
 		{
 			vertexes[br] = INVALID_ID;
@@ -911,16 +994,16 @@ public:
 
 	void debugDraw() {
 		if (element != INVALID_ID) {
-			auto vertTL = vertexes[tl] != INVALID_ID ? 
+			auto vertTL = vertexes[tl] != INVALID_ID ?
 					allocator.get().getVert(level, vertexes[tl]) : MapVertexType();
-			
-			auto vertTR = vertexes[tr] != INVALID_ID ? 
+
+			auto vertTR = vertexes[tr] != INVALID_ID ?
 					allocator.get().getVert(level, vertexes[tr]) : MapVertexType();
-			
-			auto vertBL = vertexes[bl] != INVALID_ID ? 
+
+			auto vertBL = vertexes[bl] != INVALID_ID ?
 					allocator.get().getVert(level, vertexes[bl]) : MapVertexType();
-			
-			auto vertBR = vertexes[br] != INVALID_ID ? 
+
+			auto vertBR = vertexes[br] != INVALID_ID ?
 					allocator.get().getVert(level, vertexes[br]) : MapVertexType();
 
 			glBegin(GL_QUADS);
@@ -933,7 +1016,7 @@ public:
 		}
 
 		if (level > 0)
-			for (auto&& child : childs) 
+			for (auto&& child : childs)
 				if (child)
 					child->debugDraw();
 	}

@@ -2,26 +2,28 @@
 #define PROCEDURAL_CHOSER_H
 
 #include "MapVertexType.h"
+#include "RandGenerator.h"
 
 class DefaultProceduralChoser {
 public:
 	static int hash (int a, int b) {
-		srand(a);
-		int res1 = rand();
+		namespace RG = RandGenerator;
 
-		srand(b + res1);
-		int res2 = rand();
+		RG::srand(a);
+		int res1 = RG::rand();
+
+		RG::srand(b + res1);
+		int res2 = RG::rand();
 		
-		srand(res1 * res2);
-		
-		return rand();
+		RG::srand(res1 * res2);
+		return RG::rand();
 	}
 	
 	static int hash (Point2i pos) {
 		return hash(pos.x, pos.y);
 	}
 
-	const static int MAX_HASH = RAND_MAX;
+	const static int MAX_HASH = RandGenerator::MAX_RAND;
 
 	static MapVertexType getRandVert(Point2i pos, int level) {
 
@@ -54,23 +56,23 @@ public:
 			vert.get<VertexColor>() = Point3f(r, g, b);
 		}
 		if (level <= 2) {
-			vert.get<VertexPosition>() = Point3f(pos.x, height * pow(3, level) * 1, pos.y);
+			vert.get<VertexPosition>() = Point3f(pos.x, height * pow(3, level) * 0.01, pos.y);
 			vert.get<VertexColor>() = Point3f(r, g, b);
 		}
 		else if (level <= 3) {
-			vert.get<VertexPosition>() = Point3f(pos.x, height * pow(3, level) * 2, pos.y);
+			vert.get<VertexPosition>() = Point3f(pos.x, height * pow(3, level) * 0.1, pos.y);
 			vert.get<VertexColor>() = Point3f(r, g, b);
 		}
 		else if (level <= 4) {
-			vert.get<VertexPosition>() = Point3f(pos.x, height * pow(3, level) * 1 , pos.y);
+			vert.get<VertexPosition>() = Point3f(pos.x, height * pow(3, level) * 0.1 , pos.y);
 			vert.get<VertexColor>() = Point3f(r, g, b);
 		}
 		else if (level <= 5) {
-			vert.get<VertexPosition>() = Point3f(pos.x, height * pow(3, level) * 1 , pos.y);
+			vert.get<VertexPosition>() = Point3f(pos.x, height * pow(3, level) * 0.06 , pos.y);
 			vert.get<VertexColor>() = Point3f(r, g, b);
 		}
 		else if (level <= 6) {
-			vert.get<VertexPosition>() = Point3f(pos.x, height * pow(3, level) * 1 , pos.y);
+			vert.get<VertexPosition>() = Point3f(pos.x, height * pow(3, level) * 0.01 , pos.y);
 			vert.get<VertexColor>() = Point3f(r, g, b);
 		}
 		else if (level <= 7) {
